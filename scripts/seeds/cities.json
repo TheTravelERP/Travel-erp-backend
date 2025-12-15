@@ -1,0 +1,10 @@
+[
+  { "country_code": "IN", "city_code": "DEL", "name": "Delhi" },
+  { "country_code": "IN", "city_code": "BOM", "name": "Mumbai" },
+
+  { "country_code": "SA", "city_code": "MKK", "name": "Makkah" },
+  { "country_code": "SA", "city_code": "MED", "name": "Madinah" },
+
+  { "country_code": "AE", "city_code": "DXB", "name": "Dubai" },
+  { "country_code": "AE", "city_code": "AUH", "name": "Abu Dhabi" }
+]

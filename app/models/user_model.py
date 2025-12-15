@@ -1,6 +1,6 @@
 # app/models/user_model.py
 from enum import Enum
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, UniqueConstraint
 from sqlalchemy import Enum as SQLAEnum
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
@@ -30,6 +30,12 @@ class User(Base):
     email = Column(String, nullable=False)
     password_hash = Column(String, nullable=False)
     mobile = Column(String, nullable=True)
+
+    # Added new
+    __table_args__ = (
+        UniqueConstraint("org_id", "email", name="uq_user_org_email"),
+        UniqueConstraint("org_id", "mobile", name="uq_user_org_mobile"),
+    )
 
     user_type = Column(
         SQLAEnum(UserTypeEnum, native_enum=False, length=32),

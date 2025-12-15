@@ -8,7 +8,12 @@ class Organization(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False, unique=True, index=True)
-    base_currency = Column(String(3), nullable=True, default="INR")
+    # Added new
+    org_code = Column(String(10), nullable=True, unique=True, index=True)
+
+    country_code = Column(String(2), nullable=False)
+    base_currency = Column(String(3), nullable=False)
+
     max_users = Column(Integer, default=50)
     max_bookings = Column(Integer, default=1000)
 

@@ -1,4 +1,5 @@
 # app/api/v1/auth_routes.py
+import traceback
 from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.schemas.auth_schema import OrganizationRegisterRequest, OrganizationResponse, UserResponse, LoginRequest, LoginResponse
@@ -6,18 +7,30 @@ from app.db.database import get_db
 from app.services.auth_service import create_organization_with_admin, login_user
 from app.utils.jwt_handler import verify_access_token;
 
+
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 
 
 @router.post("/register", response_model=OrganizationResponse)
-async def register_organization(payload: OrganizationRegisterRequest, db: AsyncSession = Depends(get_db)):
+async def register_organization(
+    payload: OrganizationRegisterRequest,
+    db: AsyncSession = Depends(get_db)
+):
     try:
-        org, user = await create_organization_with_admin(db, payload.organization, payload.admin)
+        # org, user = await create_organization_with_admin(db, payload, payload.admin)
+        org, user = await create_organization_with_admin(
+            db,
+            payload.organization,
+            payload.admin
+        )
+
     except ValueError as ve:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(ve))
+        raise HTTPException(status_code=400, detail=str(ve))
+
     except Exception as exc:
-        # log real error in production
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to create organization")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(exc))
+
     return org
 
 @router.post("/login", response_model=LoginResponse)
@@ -40,6 +53,7 @@ async def login(payload: LoginRequest, response: Response, db: AsyncSession = De
         "user_id": session["user_id"],
         "org_id": session["org_id"],
         "email": payload.email,
+        "org_code": session["org_code"],
     }
 
 
@@ -54,6 +68,7 @@ async def get_me(request: Request, db: AsyncSession = Depends(get_db)):
     return {
         "user_id": payload["user_id"],
         "org_id": payload["org_id"],
+        "org_code": payload["org_code"],
         "email": payload["email"]
     }
 
