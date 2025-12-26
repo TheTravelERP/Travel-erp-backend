@@ -8,7 +8,11 @@ from app.services.auth_service import create_organization_with_admin, login_user
 from app.utils.jwt_handler import verify_access_token;
 
 
-router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
+router = APIRouter(
+    prefix="/api/v1/auth",
+    tags=["auth"]
+)
+
 
 
 @router.post("/register", response_model=OrganizationResponse)

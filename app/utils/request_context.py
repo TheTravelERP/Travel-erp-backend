@@ -4,6 +4,14 @@ from app.utils.jwt_handler import verify_access_token
 
 async def get_request_context(request: Request) -> dict:
     token = request.cookies.get("access_token")
+
+    # 👇 allow Authorization header for Swagger / Postman
+    if not token:
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.replace("Bearer ", "")
+
+            
     if not token:
         raise HTTPException(status_code=401, detail="Not authenticated")
 

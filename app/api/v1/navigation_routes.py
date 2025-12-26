@@ -6,7 +6,11 @@ from app.db.database import get_db
 from app.services.navigation_service import get_user_navigation
 from app.utils.jwt_handler import verify_access_token
 
-router = APIRouter(prefix="/api/v1/me", tags=["navigation"])
+router = APIRouter(
+    prefix="/api/v1/me",
+    tags=["navigation"]
+)
+
 
 
 @router.get("/navigation")

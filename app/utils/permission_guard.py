@@ -12,6 +12,8 @@ async def require_permission(
     menu_key: str,
     action: str,
 ):
+    
+    print('user_id', user_id, 'org_id', org_id, 'menu_key', menu_key, 'action', action)
     stmt = (
         select(UserMenuPermission)
         .join(MenuMaster, MenuMaster.id == UserMenuPermission.menu_id)

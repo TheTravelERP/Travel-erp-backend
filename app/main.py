@@ -2,7 +2,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.api.v1 import auth_routes, navigation_routes  # 👈 ADD THIS
+from app.api.v1 import router as api_v1_router  # ✅ IMPORTANT
 
 app = FastAPI(title="Travel ERP API")
 
@@ -14,15 +14,16 @@ origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=[
+        "http://localhost:5173",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# 👇 REGISTER ROUTERS
-app.include_router(auth_routes.router)
-app.include_router(navigation_routes.router)   # 👈 ADD THIS
+# ✅ SINGLE ENTRY POINT FOR ALL v1 APIs
+app.include_router(api_v1_router)
 
 @app.get("/")
 def root():
