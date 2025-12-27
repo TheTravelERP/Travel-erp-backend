@@ -97,3 +97,37 @@ async def get_enquiries(
         )
     )
 
+
+
+async def get_enquiries_for_export(
+    db: AsyncSession,
+    org_id: int,
+    search: Optional[str],
+    priority: Optional[str],
+    conversion_status: Optional[str],
+):
+    query = select(Enquiry).where(
+        Enquiry.org_id == org_id,
+        Enquiry.is_deleted == False
+    )
+
+    if search:
+        query = query.where(
+            or_(
+                Enquiry.customer_name.ilike(f"%{search}%"),
+                Enquiry.customer_mobile.ilike(f"%{search}%"),
+                Enquiry.customer_email.ilike(f"%{search}%"),
+                Enquiry.package_name.ilike(f"%{search}%"),
+            )
+        )
+
+    if priority:
+        query = query.where(Enquiry.priority == priority)
+
+    if conversion_status:
+        query = query.where(Enquiry.conversion_status == conversion_status)
+
+    query = query.order_by(Enquiry.created_at.desc())
+
+    result = await db.execute(query)
+    return result.scalars().all()

@@ -5,11 +5,21 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.database import get_db
 from app.schemas.enquiry_schema import EnquiryCreate, EnquiryResponse, EnquiryListResponse
-from app.services.enquiry_service import create_enquiry, get_enquiries
+from app.services.enquiry_service import create_enquiry, get_enquiries, get_enquiries_for_export
 from app.utils.permission_guard import require_permission
 from app.utils.request_context import get_request_context
+from app.services.enquiry_export_service import export_csv, export_excel, export_pdf
+from app.services.enquiry_import_service import import_enquiries_from_csv
 
 from typing import Optional
+
+# Export 
+from fastapi.responses import StreamingResponse
+from typing import Literal
+
+# Import
+from fastapi import UploadFile, File
+
 
 router = APIRouter(
     prefix="/api/v1/crm/enquiries",
@@ -58,10 +68,8 @@ async def list_enquiries_api(
     priority: Optional[str] = None,
     conversion_status: Optional[str] = None,
 ):
-    # 🔐 Auth context
     ctx = await get_request_context(request)
 
-    # 🔐 Permission check
     await require_permission(
         db=db,
         user_id=ctx["user_id"],
@@ -79,3 +87,69 @@ async def list_enquiries_api(
         priority=priority,
         conversion_status=conversion_status,
     )
+
+
+@router.get("/export")
+async def export_enquiries_api(
+    request: Request,
+    format: Literal["csv", "excel", "pdf"],
+    db: AsyncSession = Depends(get_db),
+    search: Optional[str] = None,
+    priority: Optional[str] = None,
+    conversion_status: Optional[str] = None,
+):
+    ctx = await get_request_context(request)
+
+    print('Hitting export api')
+
+    await require_permission(
+        db=db,
+        user_id=ctx["user_id"],
+        org_id=ctx["org_id"],
+        menu_key="crm_enquiries",
+        action="export",
+    )
+
+    rows = await get_enquiries_for_export(
+        db=db,
+        org_id=ctx["org_id"],
+        search=search,
+        priority=priority,
+        conversion_status=conversion_status,
+    )
+
+    if format == "csv":
+        return export_csv(rows)
+
+    if format == "excel":
+        return export_excel(rows)
+
+    if format == "pdf":
+        return export_pdf(rows)
+    
+
+
+@router.post("/import")
+async def import_enquiries_api(
+    request: Request,
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db),
+):
+    ctx = await get_request_context(request)
+
+    await require_permission(
+        db=db,
+        user_id=ctx["user_id"],
+        org_id=ctx["org_id"],
+        menu_key="crm_enquiries",
+        action="import",
+    )
+
+    result = await import_enquiries_from_csv(
+        db=db,
+        org_id=ctx["org_id"],
+        user_id=ctx["user_id"],
+        file=file,
+    )
+
+    return result
